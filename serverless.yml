@@ -1,0 +1,46 @@
+service: myserverlessproject
+frameworkVersion: "3"
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+
+plugins:
+  - serverless-s3-sync
+
+custom:
+  tableName: player-points
+  s3Sync:
+    - bucketName: myserverlessprojectuploadbucked-321321
+      localDir: UploadData
+  
+
+functions:
+  getUser:
+    handler: lambdas/getUser.handler
+    events:
+        - http:
+              path: get-user/{ID}
+              method: GET
+              cors: true
+
+resources:
+  Resources:
+    DemoBucketUpload:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: myserverlessprojectuploadbucked-321321
+    MyDynamoDbTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:custom.tableName}
+        AttributeDefinitions:
+          - AttributeName: ID
+            AttributeType: S
+        KeySchema:
+          - AttributeName: ID 
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
